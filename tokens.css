@@ -1,0 +1,65 @@
+/* ============================================================
+   Back Bar — Design Tokens
+   tokens.css
+
+   Edit this file to re-skin the entire app.
+   Every colour, font and motion value lives here.
+   Swap the hex values in :root (light) and [data-theme="dark"]
+   to apply a new theme without touching any component CSS.
+
+   STRUCTURE
+   ─────────────────────────────────────────────────────────
+   1. Light mode  (default, :root)
+   2. Dark mode   ([data-theme="dark"])
+   3. Typography  stacks
+   4. Motion      easing curves
+   ============================================================ */
+
+:root {
+  /* ── Surfaces ─────────────────────────────────────────── */
+  --bg:           #F4EFE6;   /* page / app background          */
+  --surface:      #FBF8F2;   /* cards, panels, topbar          */
+  --surface-alt:  #ECE5D8;   /* insets, wells, input fills     */
+
+  /* ── Borders ──────────────────────────────────────────── */
+  --border:       #DAD2C2;   /* default border                 */
+  --border-s:     #c5bba9;   /* stronger border / separators   */
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --text:         #26282B;   /* primary body text              */
+  --muted:        #6B6F6C;   /* secondary / captions           */
+
+  /* ── Accent (sage-teal) ───────────────────────────────── */
+  --accent:       #2E5E5B;   /* CTAs, active states, highlights*/
+  --accent-m:     #9DB0A0;   /* muted / chip accent            */
+  --accent-soft:  rgba(46,94,91,.10); /* translucent accent bg  */
+
+  /* ── Semantic ─────────────────────────────────────────── */
+  --success:      #4E7C59;   /* positive / make-it-now        */
+  --warning:      #C28A3A;   /* caution / favourite star       */
+  --danger:       #B4543E;   /* destructive / error           */
+
+  /* ── Typography (swap font stacks here) ──────────────── */
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans:  'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* ── Motion ───────────────────────────────────────────── */
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+/* ── Dark mode overrides ─────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:           #1B1D1F;
+  --surface:      #26282B;
+  --surface-alt:  #2F3236;
+  --border:       #3A3E42;
+  --border-s:     #4a5055;
+  --text:         #F4EFE6;
+  --muted:        #A7ADA6;
+  --accent:       #9DB0A0;
+  --accent-m:     #3F6E6A;
+  --accent-soft:  rgba(157,176,160,.12);
+  --success:      #7FA988;
+  --warning:      #D7A85C;
+  --danger:       #D2785F;
+}
