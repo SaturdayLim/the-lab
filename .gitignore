@@ -7,3 +7,5 @@ claude-code-prompt.md
 .DS_Store
 Thumbs.db
 *.swp
+
+.vercel
