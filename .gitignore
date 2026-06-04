@@ -1,0 +1,9 @@
+# Dev artefacts
+START-HERE-claude-code.md
+claude-code-prompt.md
+.claude/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
