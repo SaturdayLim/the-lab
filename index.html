@@ -328,8 +328,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
    CONFIG — paste your Supabase project details here.
    The anon key is safe in the client (RLS is read-only).
    ============================================================ */
-const SUPABASE_URL      = "";   // e.g. "https://xyzxyz.supabase.co"
-const SUPABASE_ANON_KEY = "";   // Project Settings → API → anon / public key
+const SUPABASE_URL      = "https://zmflwqfebartfnjrsvpv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_paTGMPndKkktfbuqxpdLCA_pkPmHkYB";
 
 /* ── Helpers ──────────────────────────────────────────────── */
 const $  = (s, r = document) => r.querySelector(s);
@@ -458,7 +458,7 @@ const DB = {
   enabled(){ return !!(SUPABASE_URL && SUPABASE_ANON_KEY); },
   _mem: new Map(),
   _h(){
-    return {apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY,"Content-Type":"application/json"};
+    return {apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"};
   },
   async _rpc(fn, body){
     const ck="rpc:"+fn+":"+JSON.stringify(body);
