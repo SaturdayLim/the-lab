@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Lab — Flavour Pairing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;
+  line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.app{min-height:100dvh;display:flex;flex-direction:column}
+
+/* ── Topbar ── */
+.topbar{flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10}
+.brand{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.3px;line-height:1}
+.brand .dot{color:var(--accent)}
+.brand-sub{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.theme-flick{width:50px;height:28px;border-radius:14px;border:1px solid var(--border);
+  background:var(--surface-alt);cursor:pointer;position:relative;transition:background .28s,border-color .28s;padding:0}
+[data-theme="dark"] .theme-flick{background:var(--accent-m);border-color:var(--accent-m)}
+.theme-flick .knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  transition:transform .28s,background .28s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+[data-theme="dark"] .theme-flick .knob{transform:translateX(22px)}
+.theme-flick .knob svg{width:12px;height:12px;stroke:var(--accent);fill:none;stroke-width:2;flex:0 0 auto}
+
+/* ── Tabs ── */
+.tab-bar{flex:0 0 auto;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 24px;display:flex;position:sticky;top:58px;z-index:9}
+.tab-btn{font-size:13.5px;font-weight:500;color:var(--muted);padding:13px 18px;
+  border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .2s,border-color .2s;white-space:nowrap;font-family:var(--sans)}
+.tab-btn.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover:not(.on){color:var(--text)}
+
+/* ── No-config banner ── */
+.no-config-wrap{padding:16px 28px 0;max-width:960px;margin:0 auto}
+.no-config{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--warning);
+  border-radius:0 10px 10px 0;padding:11px 16px;font-size:13px;color:var(--muted);line-height:1.5}
+.no-config b{color:var(--text);font-weight:600}
+.no-config code{font-family:'Courier New',monospace;font-size:11.5px;background:var(--surface-alt);
+  border:1px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent)}
+
+/* ── Views ── */
+.main{flex:1}
+.view{display:none;padding:22px 28px 56px;max-width:960px;margin:0 auto}
+.view.active{display:block;animation:fadeUp .2s var(--ease) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.sec-lbl{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sec-lbl span[title]{cursor:help;border-bottom:1px dotted var(--border-s)}
+
+/* ── Autocomplete input ── */
+.ac-wrap{position:relative;margin-bottom:10px}
+.ac-inp{width:100%;height:42px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-family:var(--sans);font-size:14.5px;
+  padding:0 14px;outline:none;transition:border-color .2s}
+.ac-inp:focus{border-color:var(--accent)}
+.ac-inp::placeholder{color:var(--muted)}
+.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);
+  border:1px solid var(--border);border-radius:10px;max-height:240px;overflow-y:auto;
+  z-index:30;box-shadow:0 4px 20px rgba(0,0,0,.28);display:none}
+.ac-drop.open{display:block}
+.ac-opt{padding:9px 14px;font-size:13.5px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .1s}
+.ac-opt:hover,.ac-opt:focus{background:var(--surface-alt);outline:none}
+.ac-opt small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-left:auto}
+.ac-empty{padding:10px 14px;font-size:13px;color:var(--muted)}
+
+/* ── Ingredient list ── */
+.ing-list{margin-bottom:14px}
+.ing-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.ing-item:last-child{border:none}
+.ing-name{flex:1;font-size:14px}
+.ing-role{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;flex:0 0 72px}
+.lock-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px 5px;
+  border-radius:5px;transition:background .15s;line-height:1}
+.lock-btn:hover{background:var(--surface-alt)}
+.rm-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:18px;
+  padding:2px 5px;border-radius:5px;transition:color .15s;line-height:1}
+.rm-btn:hover{color:var(--danger)}
+.ing-empty{color:var(--muted);font-size:13.5px;padding:10px 0 2px}
+
+/* ── Controls row ── */
+.controls-row{display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap;
+  padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:18px}
+.ctrl-lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.mode-seg{display:flex;gap:3px}
+.mode-btn{font-size:12px;padding:5px 11px;border-radius:7px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;transition:.15s;font-family:var(--sans)}
+.mode-btn.on{background:var(--surface-alt);border-color:var(--border-s);color:var(--text);font-weight:500}
+.thresh-wrap{display:flex;gap:8px;align-items:center;flex:1;min-width:180px}
+.thresh-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;
+  background:var(--surface-alt);outline:none;cursor:pointer;accent-color:var(--accent)}
+.thresh-val{font-size:13px;font-weight:600;color:var(--accent);min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ── Status ── */
+.status-row{min-height:22px;font-size:12.5px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Result rows ── */
+.result-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .12s;border-radius:6px}
+.result-item:last-of-type{border-bottom:none}
+.result-item:hover{background:var(--surface-alt);padding:8px 8px;margin:0 -8px}
+.r-name{flex:1;font-size:13.5px}
+.r-cat{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;flex:0 0 66px;text-align:right}
+.score-track{flex:0 0 130px;height:5px;border-radius:3px;background:var(--surface-alt);position:relative}
+.score-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .3s var(--ease)}
+.score-line{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:1px;background:var(--warning)}
+.score-num{flex:0 0 28px;text-align:right;font-size:12.5px;font-weight:600;
+  color:var(--accent);font-variant-numeric:tabular-nums}
+.below-thresh{font-size:12px;color:var(--muted);padding:8px 0;text-align:center;
+  border-top:1px dashed var(--border);margin-top:4px}
+.below-thresh button{background:none;border:none;color:var(--accent);cursor:pointer;
+  font-size:12px;text-decoration:underline;font-family:var(--sans)}
+.results-section{margin-bottom:28px}
+.empty-state{color:var(--muted);font-size:13.5px;padding:6px 0}
+
+/* ── Alternatives ── */
+.alt-group{margin-bottom:14px}
+.alt-lbl{font-size:12px;color:var(--muted);margin-bottom:7px}
+.alt-lbl b{color:var(--text)}
+.alt-chips{display:flex;flex-wrap:wrap;gap:6px}
+.alt-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  background:var(--surface);border:1px solid var(--border);border-radius:7px;
+  padding:4px 11px;cursor:pointer;transition:.15s var(--ease)}
+.alt-chip:hover{border-color:var(--accent-m);background:var(--surface-alt)}
+.alt-chip .ascore{font-size:11px;font-weight:600;color:var(--accent)}
+
+/* ── Ingredient List tab ── */
+.list-controls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.list-search{flex:1;min-width:180px;height:38px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-size:14px;padding:0 12px;outline:none;
+  font-family:var(--sans);transition:border-color .2s}
+.list-search:focus{border-color:var(--accent)}
+.list-filter{height:38px;border-radius:9px;border:1px solid var(--border);background:var(--surface-alt);
+  color:var(--text);font-size:13px;padding:0 10px;outline:none;cursor:pointer;font-family:var(--sans)}
+.node-table{width:100%;border-collapse:collapse}
+.node-table th{text-align:left;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);padding:0 8px 10px;font-weight:500}
+.node-table td{padding:7px 8px;border-bottom:1px solid var(--border);font-size:13.5px;color:var(--text)}
+.node-table tbody tr{cursor:pointer;transition:background .1s}
+.node-table tbody tr:hover td{background:var(--surface-alt)}
+.node-table tbody tr:last-child td{border:none}
+.role-badge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  background:var(--surface-alt);border:1px solid var(--border);border-radius:5px;padding:2px 7px}
+
+/* ── Profile overlay ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.overlay-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:24px;max-width:500px;width:100%;max-height:82vh;overflow-y:auto}
+.profile-name{font-family:var(--serif);font-size:22px;font-weight:500;margin-bottom:6px}
+.profile-meta{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+
+/* ── Info tab ── */
+.info-block{margin-bottom:28px}
+.info-h{font-family:var(--serif);font-size:19px;font-weight:500;margin-bottom:8px;
+  padding-bottom:8px;border-bottom:1px solid var(--border)}
+.info-p{font-size:13.5px;color:var(--muted);line-height:1.7;margin-bottom:6px}
+.info-p b{color:var(--text)}
+.info-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.info-table td{padding:7px 12px;border-bottom:1px solid var(--border)}
+.info-table td:first-child{color:var(--accent);font-weight:600;white-space:nowrap;width:110px}
+.info-table td:last-child{color:var(--muted)}
+.info-table tr:last-child td{border:none}
+.info-attr{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic}
+.info-attr a{color:var(--accent);text-decoration:none}
+.info-attr a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div>
+      <div class="brand">The Lab<span class="dot">.</span></div>
+      <div class="brand-sub">Flavour pairing</div>
+    </div>
+    <button class="theme-flick" id="theme-btn" aria-label="Toggle theme">
+      <span class="knob"><svg id="theme-icon" viewBox="0 0 24 24">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg></span>
+    </button>
+  </header>
+
+  <nav class="tab-bar" role="tablist">
+    <button class="tab-btn on" data-tab="pairings">Pairings</button>
+    <button class="tab-btn" data-tab="ingredients">Ingredient List</button>
+    <button class="tab-btn" data-tab="info">Info</button>
+  </nav>
+
+  <div id="no-config-wrap" class="no-config-wrap" style="display:none">
+    <div class="no-config">
+      <b>Supabase not configured.</b> Open <code>index.html</code>, find the
+      <code>&lt;script&gt;</code> block and paste your <code>SUPABASE_URL</code>
+      and <code>SUPABASE_ANON_KEY</code>. The ingredient list works offline;
+      live pairing scores require a connection.
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- PAIRINGS -->
+    <section class="view active" id="view-pairings">
+
+      <div class="sec-lbl"><span title="Add ingredients to find compatible flavours">Ingredients</span></div>
+      <div class="ac-wrap">
+        <input class="ac-inp" id="ac-inp" type="search"
+          placeholder="Add ingredient — e.g. lamb, rum, lemon, chilli…" autocomplete="off" />
+        <div class="ac-drop" id="ac-drop"></div>
+      </div>
+      <div class="ing-list" id="ing-list">
+        <div class="ing-empty">No ingredients yet — search above to start.</div>
+      </div>
+
+      <div class="controls-row">
+        <div>
+          <div class="ctrl-lbl" title="Maps to FlavorGraph modes: explore → garnish → modifier → twist">Style</div>
+          <div class="mode-seg" id="mode-seg">
+            <button class="mode-btn on" data-mode="explore">Classic</button>
+            <button class="mode-btn" data-mode="garnish">Garnish</button>
+            <button class="mode-btn" data-mode="modifier">Modifier</button>
+            <button class="mode-btn" data-mode="twist">Adventurous</button>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div class="ctrl-lbl" title="Only results at or above this score are shown. Default 90 = well-tested pairings only.">Confidence threshold</div>
+          <div class="thresh-wrap">
+            <input class="thresh-slider" id="thresh-slider" type="range" min="0" max="100" value="90" />
+            <span class="thresh-val" id="thresh-val">90</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-row" id="status-row"></div>
+
+      <div class="results-section" id="sec-pairings">
+        <div class="sec-lbl"><span title="Ingredients that work with your full selection, ranked by confidence score. Click any to add.">Pairings</span></div>
+        <div id="pairings-list"></div>
+      </div>
+
+      <div class="results-section" id="sec-alternatives">
+        <div class="sec-lbl"><span title="Swap suggestions for unlocked (🔓) ingredients — what else could work with the rest of your selection.">Alternatives</span></div>
+        <div id="alternatives-list"></div>
+      </div>
+
+    </section>
+
+    <!-- INGREDIENT LIST -->
+    <section class="view" id="view-ingredients">
+      <div class="list-controls">
+        <input class="list-search" id="list-q" type="search" placeholder="Search ingredients…" autocomplete="off" />
+        <select class="list-filter" id="list-role"><option value="">All roles</option></select>
+      </div>
+      <table class="node-table">
+        <thead><tr><th>Ingredient</th><th>Role</th><th>Category</th></tr></thead>
+        <tbody id="node-tbody"></tbody>
+      </table>
+    </section>
+
+    <!-- INFO -->
+    <section class="view" id="view-info">
+
+      <div class="info-block">
+        <div class="info-h">What is FlavorGraph?</div>
+        <p class="info-p">A graph of <b>8 000 ingredients and flavor compounds</b> with 147 000 edges, built from two sources: statistical co-occurrence across <b>more than one million recipes</b>, and shared chemical affinity across <b>~1 500 flavor molecules</b>. Each ingredient is mapped to a point in a 300-dimensional space — ingredients that taste good together sit close together.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="info-h">What does the score mean?</div>
+        <p class="info-p">The score (0–100) is the <b>cosine similarity</b> of ingredient embeddings — how close two ingredients are in flavor space. Higher = stronger, better-tested affinity.</p>
+        <table class="info-table">
+          <tr><td>90–100</td><td>Well-tested. Classic, high-confidence pairings.</td></tr>
+          <tr><td>70–89</td><td>Interesting territory. Worth exploring.</td></tr>
+          <tr><td>50–69</td><td>Creative risk. Context-dependent.</td></tr>
+          <tr><td>&lt; 50</td><td>Adventurous. Proceed with curiosity.</td></tr>
+        </table>
+        <p class="info-p">The default threshold is <b>90</b>. Drag it left to reveal more options. The yellow line on each score bar shows the current threshold.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="info-h">Multi-ingredient queries</div>
+        <p class="info-p">With multiple ingredients selected, the query uses the <b>centroid</b> — the mean of all your ingredient embeddings. Only flavours near the centre of your selection score highly. This means broad results for <b>chicken</b> alone, and focused results for <b>chicken + chilli + garlic + onion</b>. The more specific your palette, the more specific the suggestions. This is a feature, not a limitation.</p>
+      </div>
+
+      <div class="info-block">
+        <div class="info-h">Style modes</div>
+        <table class="info-table">
+          <tr><td>Classic</td><td>Broadest, most established pairings (explore mode)</td></tr>
+          <tr><td>Garnish</td><td>Finishing notes — accent and complement</td></tr>
+          <tr><td>Modifier</td><td>Structural swaps — same role, different character</td></tr>
+          <tr><td>Adventurous</td><td>Unexpected but graph-supported affinities (twist mode)</td></tr>
+        </table>
+      </div>
+
+      <div class="info-block">
+        <div class="info-h">Lock &amp; unlock</div>
+        <p class="info-p"><b>🔒 Lock</b> an ingredient to fix it in the query — it will always be included. <b>🔓 Unlock</b> an ingredient to mark it as flexible; the Alternatives section will suggest what could replace it while working with the locked set.</p>
+        <p class="info-p">If all ingredients are locked, Alternatives are hidden. New ingredients are locked by default.</p>
+      </div>
+
+      <p class="info-attr">Park et al., "FlavorGraph: a large-scale food-chemical graph for generating food representations and recommending food pairings," <em>Scientific Reports</em>, 2021.
+        <a href="https://github.com/lamypark/FlavorGraph" target="_blank" rel="noopener">github.com/lamypark/FlavorGraph</a>
+      </p>
+
+    </section>
+
+  </div><!-- /main -->
+
+  <!-- Profile overlay -->
+  <div class="overlay" id="profile-overlay" style="display:none">
+    <div class="overlay-card" id="profile-card"></div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — paste your Supabase project details here.
+   The anon key is safe in the client (RLS is read-only).
+   ============================================================ */
+const SUPABASE_URL      = "https://zmflwqfebartfnjrsvpv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_paTGMPndKkktfbuqxpdLCA_pkPmHkYB";
+
+/* ── Helpers ──────────────────────────────────────────────── */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ============================================================
+   SEED DATA
+   Mirrors flavor_nodes structure. Used when Supabase is offline.
+   The live nodes table will replace this on boot if keys are set.
+   ============================================================ */
+const SEED_NODES = [
+  // Spirits
+  {name:"white-rum",display_name:"White Rum",bar_role:"spirit",category:"alcohol"},
+  {name:"aged-rum",display_name:"Aged Rum",bar_role:"spirit",category:"alcohol"},
+  {name:"gin",display_name:"London Dry Gin",bar_role:"spirit",category:"alcohol"},
+  {name:"vodka",display_name:"Vodka",bar_role:"spirit",category:"alcohol"},
+  {name:"blanco-tequila",display_name:"Blanco Tequila",bar_role:"spirit",category:"alcohol"},
+  {name:"mezcal",display_name:"Mezcal",bar_role:"spirit",category:"alcohol"},
+  {name:"bourbon",display_name:"Bourbon",bar_role:"spirit",category:"alcohol"},
+  {name:"rye-whiskey",display_name:"Rye Whiskey",bar_role:"spirit",category:"alcohol"},
+  {name:"scotch-whisky",display_name:"Scotch Whisky",bar_role:"spirit",category:"alcohol"},
+  {name:"cognac",display_name:"Cognac",bar_role:"spirit",category:"alcohol"},
+  {name:"pisco",display_name:"Pisco",bar_role:"spirit",category:"alcohol"},
+  {name:"calvados",display_name:"Calvados",bar_role:"spirit",category:"alcohol"},
+  // Fortified / vermouth
+  {name:"sweet-vermouth",display_name:"Sweet Vermouth",bar_role:"fortified",category:"alcohol"},
+  {name:"dry-vermouth",display_name:"Dry Vermouth",bar_role:"fortified",category:"alcohol"},
+  // Liqueurs / bitters
+  {name:"campari",display_name:"Campari",bar_role:"bitters",category:"alcohol"},
+  {name:"aperol",display_name:"Aperol",bar_role:"bitters",category:"alcohol"},
+  {name:"triple-sec",display_name:"Triple Sec",bar_role:"liqueur",category:"alcohol"},
+  {name:"maraschino",display_name:"Maraschino Liqueur",bar_role:"liqueur",category:"alcohol"},
+  {name:"coffee-liqueur",display_name:"Coffee Liqueur",bar_role:"liqueur",category:"alcohol"},
+  {name:"elderflower-liqueur",display_name:"Elderflower Liqueur",bar_role:"liqueur",category:"alcohol"},
+  {name:"green-chartreuse",display_name:"Green Chartreuse",bar_role:"liqueur",category:"alcohol"},
+  {name:"amaro",display_name:"Amaro",bar_role:"liqueur",category:"alcohol"},
+  {name:"angostura-bitters",display_name:"Angostura Bitters",bar_role:"bitters",category:"alcohol"},
+  {name:"orange-bitters",display_name:"Orange Bitters",bar_role:"bitters",category:"alcohol"},
+  // Citrus
+  {name:"lime-juice",display_name:"Lime Juice",bar_role:"citrus",category:"citrus"},
+  {name:"lemon-juice",display_name:"Lemon Juice",bar_role:"citrus",category:"citrus"},
+  {name:"grapefruit-juice",display_name:"Grapefruit Juice",bar_role:"citrus",category:"citrus"},
+  {name:"orange-juice",display_name:"Orange Juice",bar_role:"citrus",category:"citrus"},
+  {name:"yuzu-juice",display_name:"Yuzu Juice",bar_role:"citrus",category:"citrus"},
+  // Syrups / sweeteners
+  {name:"simple-syrup",display_name:"Simple Syrup",bar_role:"syrup",category:"sweetener"},
+  {name:"honey-syrup",display_name:"Honey Syrup",bar_role:"syrup",category:"sweetener"},
+  {name:"orgeat",display_name:"Orgeat",bar_role:"syrup",category:"sweetener"},
+  {name:"grenadine",display_name:"Grenadine",bar_role:"syrup",category:"sweetener"},
+  {name:"honey",display_name:"Honey",bar_role:"syrup",category:"sweetener"},
+  {name:"maple-syrup",display_name:"Maple Syrup",bar_role:"syrup",category:"sweetener"},
+  // Herbs
+  {name:"mint",display_name:"Mint",bar_role:"herb",category:"herb"},
+  {name:"basil",display_name:"Basil",bar_role:"herb",category:"herb"},
+  {name:"rosemary",display_name:"Rosemary",bar_role:"herb",category:"herb"},
+  {name:"thyme",display_name:"Thyme",bar_role:"herb",category:"herb"},
+  {name:"tarragon",display_name:"Tarragon",bar_role:"herb",category:"herb"},
+  {name:"sage",display_name:"Sage",bar_role:"herb",category:"herb"},
+  {name:"coriander-leaf",display_name:"Coriander (leaf)",bar_role:"herb",category:"herb"},
+  // Spices
+  {name:"ginger",display_name:"Ginger",bar_role:"spice",category:"spice"},
+  {name:"chilli",display_name:"Chilli",bar_role:"spice",category:"spice"},
+  {name:"black-pepper",display_name:"Black Pepper",bar_role:"spice",category:"spice"},
+  {name:"cardamom",display_name:"Cardamom",bar_role:"spice",category:"spice"},
+  {name:"cinnamon",display_name:"Cinnamon",bar_role:"spice",category:"spice"},
+  {name:"star-anise",display_name:"Star Anise",bar_role:"spice",category:"spice"},
+  {name:"turmeric",display_name:"Turmeric",bar_role:"spice",category:"spice"},
+  {name:"cumin",display_name:"Cumin",bar_role:"spice",category:"spice"},
+  // Mixers
+  {name:"soda-water",display_name:"Soda Water",bar_role:"mixer",category:"mixer"},
+  {name:"tonic-water",display_name:"Tonic Water",bar_role:"mixer",category:"mixer"},
+  {name:"ginger-beer",display_name:"Ginger Beer",bar_role:"mixer",category:"mixer"},
+  {name:"coconut-water",display_name:"Coconut Water",bar_role:"mixer",category:"mixer"},
+  // Dairy / egg
+  {name:"egg-white",display_name:"Egg White",bar_role:"dairy",category:"dairy"},
+  {name:"heavy-cream",display_name:"Heavy Cream",bar_role:"dairy",category:"dairy"},
+  {name:"butter",display_name:"Butter",bar_role:"dairy",category:"dairy"},
+  {name:"parmesan",display_name:"Parmesan",bar_role:"dairy",category:"dairy"},
+  // Meat / seafood
+  {name:"lamb",display_name:"Lamb",bar_role:"other",category:"meat"},
+  {name:"beef",display_name:"Beef",bar_role:"other",category:"meat"},
+  {name:"chicken",display_name:"Chicken",bar_role:"other",category:"meat"},
+  {name:"pork",display_name:"Pork",bar_role:"other",category:"meat"},
+  {name:"duck",display_name:"Duck",bar_role:"other",category:"meat"},
+  {name:"salmon",display_name:"Salmon",bar_role:"other",category:"seafood"},
+  {name:"tuna",display_name:"Tuna",bar_role:"other",category:"seafood"},
+  {name:"anchovy",display_name:"Anchovy",bar_role:"other",category:"seafood"},
+  // Alliums / aromatics
+  {name:"garlic",display_name:"Garlic",bar_role:"other",category:"vegetable"},
+  {name:"onion",display_name:"Onion",bar_role:"other",category:"vegetable"},
+  {name:"shallot",display_name:"Shallot",bar_role:"other",category:"vegetable"},
+  {name:"leek",display_name:"Leek",bar_role:"other",category:"vegetable"},
+  {name:"black-garlic",display_name:"Black Garlic",bar_role:"other",category:"vegetable"},
+  // Vegetables
+  {name:"tomato",display_name:"Tomato",bar_role:"other",category:"vegetable"},
+  {name:"mushroom",display_name:"Mushroom",bar_role:"other",category:"vegetable"},
+  {name:"truffle",display_name:"Truffle",bar_role:"other",category:"vegetable"},
+  {name:"fennel",display_name:"Fennel",bar_role:"other",category:"vegetable"},
+  {name:"celery",display_name:"Celery",bar_role:"other",category:"vegetable"},
+  {name:"cucumber-veg",display_name:"Cucumber",bar_role:"other",category:"vegetable"},
+  // Fruit
+  {name:"strawberry",display_name:"Strawberry",bar_role:"fruit",category:"fruit"},
+  {name:"raspberry",display_name:"Raspberry",bar_role:"fruit",category:"fruit"},
+  {name:"mango",display_name:"Mango",bar_role:"fruit",category:"fruit"},
+  {name:"pineapple",display_name:"Pineapple",bar_role:"fruit",category:"fruit"},
+  {name:"peach",display_name:"Peach",bar_role:"fruit",category:"fruit"},
+  {name:"apple",display_name:"Apple",bar_role:"fruit",category:"fruit"},
+  {name:"coconut",display_name:"Coconut",bar_role:"fruit",category:"fruit"},
+  {name:"passion-fruit",display_name:"Passion Fruit",bar_role:"fruit",category:"fruit"},
+  // Other
+  {name:"dark-chocolate",display_name:"Dark Chocolate",bar_role:"other",category:"other"},
+  {name:"vanilla",display_name:"Vanilla",bar_role:"other",category:"other"},
+  {name:"espresso",display_name:"Espresso",bar_role:"other",category:"other"},
+  {name:"miso",display_name:"Miso",bar_role:"other",category:"other"},
+  {name:"soy-sauce",display_name:"Soy Sauce",bar_role:"other",category:"other"},
+  {name:"olive",display_name:"Olive",bar_role:"other",category:"other"},
+  {name:"capers",display_name:"Capers",bar_role:"other",category:"other"},
+];
+
+/* ============================================================
+   DATA LAYER
+   ============================================================ */
+const DB = {
+  enabled(){ return !!(SUPABASE_URL && SUPABASE_ANON_KEY); },
+  _mem: new Map(),
+  _h(){
+    return {apikey:SUPABASE_ANON_KEY,"Content-Type":"application/json"};
+  },
+  async _rpc(fn, body){
+    const ck="rpc:"+fn+":"+JSON.stringify(body);
+    if(this._mem.has(ck)) return this._mem.get(ck);
+    try{const s=localStorage.getItem("lab:"+ck);if(s){const v=JSON.parse(s);this._mem.set(ck,v);return v;}}catch(e){}
+    const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:this._h(),body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(fn+" → HTTP "+r.status);
+    const d=await r.json();
+    this._mem.set(ck,d);
+    try{localStorage.setItem("lab:"+ck,JSON.stringify(d));}catch(e){}
+    return d;
+  },
+  async _get(path){
+    const ck="get:"+path;
+    if(this._mem.has(ck)) return this._mem.get(ck);
+    try{const s=localStorage.getItem("lab:"+ck);if(s){const v=JSON.parse(s);this._mem.set(ck,v);return v;}}catch(e){}
+    const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,{headers:this._h()});
+    if(!r.ok) throw new Error("GET "+path+" → HTTP "+r.status);
+    const d=await r.json();
+    this._mem.set(ck,d);
+    try{localStorage.setItem("lab:"+ck,JSON.stringify(d));}catch(e){}
+    return d;
+  },
+  pair(ingredients,mode="explore",exclude=[],limit=30){
+    return this._rpc("flavor_pair",{p_ingredients:ingredients,p_mode:mode,p_exclude:exclude,p_limit:limit});
+  },
+  nodes(){ return this._get("flavor_nodes?select=name,display_name,category,bar_role"); },
+};
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+const state = {
+  ingredients: [],   // [{id,name,display_name,bar_role,locked}]
+  mode:        "explore",
+  threshold:   90,
+  pairings:    [],   // raw results from RPC
+  alts:        {},   // {ingredient_id:[{name,display_name,score},...]}
+  allNodes:    {},   // name → node (seed + live merged)
+  nextId:      1,
+};
+
+/* Populate from seed immediately so the ingredient list works offline */
+SEED_NODES.forEach(n => { state.allNodes[n.name] = n; });
+
+/* ============================================================
+   THEME
+   ============================================================ */
+const MOON='<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+const SUN ='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+function applyTheme(dark){
+  document.documentElement.dataset.theme=dark?"dark":"light";
+  $('#theme-icon').innerHTML=dark?MOON:SUN;
+  try{localStorage.setItem("lab:theme",dark?"dark":"light");}catch(e){}
+}
+$('#theme-btn').addEventListener("click",()=>applyTheme(document.documentElement.dataset.theme!=="dark"));
+applyTheme(localStorage.getItem("lab:theme")!=="light");
+
+/* ============================================================
+   TAB ROUTING
+   ============================================================ */
+function showTab(id){
+  $$(".tab-btn").forEach(b=>b.classList.toggle("on",b.dataset.tab===id));
+  $$(".view").forEach(v=>{
+    const on=v.id==="view-"+id;
+    v.classList.toggle("active",on);
+    if(on){v.style.animation="none";v.offsetHeight;v.style.animation="";}
+  });
+  if(id==="ingredients") renderNodeTable();
+}
+$$(".tab-btn").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+
+/* ============================================================
+   AUTOCOMPLETE
+   ============================================================ */
+let acT;
+const acInp=$('#ac-inp'), acDrop=$('#ac-drop');
+
+acInp.addEventListener('input',e=>{clearTimeout(acT);acT=setTimeout(()=>renderAC(e.target.value.trim()),130);});
+acInp.addEventListener('focus',e=>{if(e.target.value.trim())renderAC(e.target.value.trim());});
+document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap'))closeAC();});
+acInp.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeAC();acInp.blur();}
+});
+
+function renderAC(q){
+  if(!q){closeAC();return;}
+  const ql=q.toLowerCase();
+  const used=new Set(state.ingredients.map(i=>i.name));
+  const hits=Object.values(state.allNodes)
+    .filter(n=>!used.has(n.name)&&(n.display_name.toLowerCase().includes(ql)||n.name.includes(ql)))
+    .slice(0,14);
+  acDrop.innerHTML=hits.length
+    ? hits.map(n=>`<div class="ac-opt" tabindex="0" data-name="${esc(n.name)}" data-dn="${esc(n.display_name)}" data-role="${esc(n.bar_role||'')}">
+        ${esc(n.display_name)}<small>${esc(n.bar_role||n.category||'')}</small>
+      </div>`).join('')
+    : `<div class="ac-empty">No matches for "${esc(q)}".</div>`;
+  $$('.ac-opt',acDrop).forEach(o=>o.addEventListener('click',()=>pickAC(o)));
+  acDrop.classList.add('open');
+}
+function pickAC(opt){
+  addIngredient(opt.dataset.name,opt.dataset.dn,opt.dataset.role);
+  acInp.value='';closeAC();acInp.focus();
+}
+function closeAC(){acDrop.classList.remove('open');}
+
+/* ============================================================
+   INGREDIENT MANAGEMENT
+   ============================================================ */
+function addIngredient(name,display_name,bar_role){
+  if(state.ingredients.find(i=>i.name===name))return;
+  state.ingredients.push({id:String(state.nextId++),name,display_name,bar_role:bar_role||'other',locked:true});
+  renderIngList();
+  scheduleQuery();
+}
+function removeIngredient(id){
+  state.ingredients=state.ingredients.filter(i=>i.id!==id);
+  renderIngList();scheduleQuery();
+}
+function toggleLock(id){
+  const i=state.ingredients.find(x=>x.id===id);
+  if(i){i.locked=!i.locked;renderIngList();scheduleQuery();}
+}
+function renderIngList(){
+  const el=$('#ing-list');
+  if(!state.ingredients.length){
+    el.innerHTML='<div class="ing-empty">No ingredients yet — search above to start.</div>';
+    return;
+  }
+  el.innerHTML=state.ingredients.map(i=>`
+    <div class="ing-item" data-id="${esc(i.id)}">
+      <span class="ing-name">${esc(i.display_name)}</span>
+      <span class="ing-role">${esc(i.bar_role||'')}</span>
+      <button class="lock-btn" data-id="${esc(i.id)}" title="${i.locked?'Locked – click to unlock':'Unlocked – click to lock'}">${i.locked?'🔒':'🔓'}</button>
+      <button class="rm-btn"   data-id="${esc(i.id)}" title="Remove">×</button>
+    </div>`).join('');
+  $$('.lock-btn',el).forEach(b=>b.addEventListener('click',()=>toggleLock(b.dataset.id)));
+  $$('.rm-btn',  el).forEach(b=>b.addEventListener('click',()=>removeIngredient(b.dataset.id)));
+}
+
+/* ============================================================
+   MODE & THRESHOLD
+   ============================================================ */
+$$('.mode-btn').forEach(b=>b.addEventListener('click',()=>{
+  state.mode=b.dataset.mode;
+  $$('.mode-btn').forEach(x=>x.classList.toggle('on',x===b));
+  scheduleQuery();
+}));
+$('#thresh-slider').addEventListener('input',e=>{
+  state.threshold=+e.target.value;
+  $('#thresh-val').textContent=state.threshold;
+  renderPairings();renderAlternatives(); /* re-filter, no new fetch */
+});
+
+/* ============================================================
+   QUERY ORCHESTRATION
+   ============================================================ */
+let qTimer;
+function scheduleQuery(delay=400){clearTimeout(qTimer);qTimer=setTimeout(runQuery,delay);}
+
+/* The RPC returns cosine-similarity as a 0–1 decimal.
+   The UI expects 0–100. Normalise once at ingestion so all
+   display code (scoreRow, threshold comparison, alt chips) works correctly. */
+function normPairings(arr){
+  return (arr||[]).map(p=>({
+    ...p,
+    score: p.score != null && p.score <= 1.0 ? p.score * 100 : (p.score || 0)
+  }));
+}
+
+async function runQuery(){
+  if(!state.ingredients.length){
+    state.pairings=[];state.alts={};
+    renderPairings();renderAlternatives();setStatus('');return;
+  }
+  if(!DB.enabled()){
+    setStatus('Connect Supabase to see live pairing scores.');
+    renderPairings();renderAlternatives();return;
+  }
+  const names=state.ingredients.map(i=>i.name);
+  try{
+    setStatus('<span class="spinner"></span> Fetching pairings…');
+    state.pairings=normPairings(await DB.pair(names,state.mode,names,40));
+    renderPairings();
+    setStatus('');
+  }catch(e){
+    setStatus('Error: '+e.message);
+    console.error(e);
+  }
+  await runAlts();
+}
+
+async function runAlts(){
+  const unlocked=state.ingredients.filter(i=>!i.locked);
+  if(!unlocked.length||!DB.enabled()){state.alts={};renderAlternatives();return;}
+  const allNames=state.ingredients.map(i=>i.name);
+  const results={};
+  await Promise.all(unlocked.map(async u=>{
+    const others=state.ingredients.filter(i=>i.id!==u.id).map(i=>i.name);
+    const querySet=others.length?others:[u.name];
+    try{
+      results[u.id]=normPairings(await DB.pair(querySet,state.mode,allNames,6));
+    }catch(e){results[u.id]=[];}
+  }));
+  state.alts=results;
+  renderAlternatives();
+}
+
+/* ============================================================
+   RENDER: PAIRINGS
+   ============================================================ */
+function scoreRow(p){
+  const s=Math.round(p.score),t=state.threshold;
+  return `<div class="result-item" data-name="${esc(p.name)}" title="Click to add ${esc(p.display_name||p.name)} to your list">
+    <span class="r-name">${esc(p.display_name||p.name)}</span>
+    <span class="r-cat">${esc(p.category||p.role||'')}</span>
+    <div class="score-track">
+      <div class="score-fill" style="width:${Math.min(100,s)}%"></div>
+      <div class="score-line" style="left:${t}%"></div>
+    </div>
+    <span class="score-num">${s}</span>
+  </div>`;
+}
+
+function renderPairings(){
+  const el=$('#pairings-list');
+  if(!DB.enabled()){el.innerHTML='<div class="empty-state">Connect Supabase to see live pairings.</div>';return;}
+  if(!state.ingredients.length){el.innerHTML='<div class="empty-state">Add ingredients above.</div>';return;}
+  if(!state.pairings.length){el.innerHTML='<div class="empty-state">No results yet.</div>';return;}
+  const above=state.pairings.filter(p=>p.score>=state.threshold);
+  const below=state.pairings.filter(p=>p.score<state.threshold);
+  let html=above.map(scoreRow).join('');
+  if(below.length){
+    const showAt=below.length?Math.floor(below[0].score):state.threshold;
+    html+=`<div class="below-thresh">${below.length} more below ${state.threshold}.
+      <button id="show-below-btn">Show (threshold → ${showAt})</button></div>`;
+  }
+  el.innerHTML=html||'<div class="empty-state">No results above threshold — try lowering the confidence slider.</div>';
+  $$('.result-item',el).forEach(row=>row.addEventListener('click',()=>{
+    const n=state.allNodes[row.dataset.name];
+    addIngredient(row.dataset.name,n?n.display_name:row.dataset.name,n?n.bar_role:'other');
+  }));
+  const showBtn=$('#show-below-btn');
+  if(showBtn) showBtn.addEventListener('click',()=>{
+    const v=Math.max(0,Math.floor(below[0].score));
+    state.threshold=v;
+    $('#thresh-slider').value=v;$('#thresh-val').textContent=v;
+    renderPairings();renderAlternatives();
+  });
+}
+
+/* ============================================================
+   RENDER: ALTERNATIVES
+   ============================================================ */
+function renderAlternatives(){
+  const el=$('#alternatives-list');
+  if(!DB.enabled()){el.innerHTML='<div class="empty-state">Connect Supabase to see alternatives.</div>';return;}
+  if(!state.ingredients.length){el.innerHTML='<div class="empty-state">Add ingredients to see alternatives.</div>';return;}
+  const unlocked=state.ingredients.filter(i=>!i.locked);
+  if(!unlocked.length){
+    el.innerHTML='<div class="empty-state">🔒 All ingredients are locked. Unlock one (🔓) to see swap suggestions.</div>';
+    return;
+  }
+  el.innerHTML=unlocked.map(u=>{
+    const alts=(state.alts[u.id]||[]).filter(a=>a.score>=state.threshold);
+    return `<div class="alt-group">
+      <div class="alt-lbl">Instead of <b>${esc(u.display_name)}</b> →</div>
+      <div class="alt-chips">${alts.length
+        ? alts.map(a=>`<span class="alt-chip" data-name="${esc(a.name)}" title="Add to list">
+            ${esc(a.display_name||a.name)}<span class="ascore">${Math.round(a.score)}</span>
+          </span>`).join('')
+        : '<span style="color:var(--muted);font-size:13px">No alternatives above threshold.</span>'
+      }</div>
+    </div>`;
+  }).join('');
+  $$('.alt-chip',el).forEach(c=>c.addEventListener('click',()=>{
+    const n=state.allNodes[c.dataset.name];
+    addIngredient(c.dataset.name,n?n.display_name:c.dataset.name,n?n.bar_role:'other');
+  }));
+}
+
+/* ============================================================
+   INGREDIENT LIST TAB
+   ============================================================ */
+let nodeList=[];
+function buildNodeList(){
+  nodeList=Object.values(state.allNodes).sort((a,b)=>a.display_name.localeCompare(b.display_name));
+  const roles=[...new Set(nodeList.map(n=>n.bar_role).filter(Boolean))].sort();
+  $('#list-role').innerHTML='<option value="">All roles</option>'
+    +roles.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+}
+function renderNodeTable(){
+  const q=($('#list-q').value||'').toLowerCase();
+  const role=$('#list-role').value;
+  const rows=nodeList.filter(n=>{
+    const mq=!q||n.display_name.toLowerCase().includes(q)||n.name.includes(q);
+    const mr=!role||n.bar_role===role;
+    return mq&&mr;
+  });
+  const tbody=$('#node-tbody');
+  tbody.innerHTML=rows.length
+    ? rows.map(n=>`<tr data-name="${esc(n.name)}">
+        <td>${esc(n.display_name)}</td>
+        <td><span class="role-badge">${esc(n.bar_role||'')}</span></td>
+        <td style="color:var(--muted);font-size:12.5px">${esc(n.category||'')}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" style="color:var(--muted);padding:14px 8px">No matches.</td></tr>';
+  $$('tbody tr',tbody).forEach(r=>r.addEventListener('click',()=>showProfile(r.dataset.name)));
+}
+$('#list-q').addEventListener('input',renderNodeTable);
+$('#list-role').addEventListener('change',renderNodeTable);
+
+/* ── Profile overlay ───────────────────────────────────── */
+async function showProfile(name){
+  const n=state.allNodes[name];if(!n)return;
+  const overlay=$('#profile-overlay'),card=$('#profile-card');
+  card.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div>
+        <div class="profile-name">${esc(n.display_name)}</div>
+        <div class="profile-meta">
+          <span class="role-badge">${esc(n.bar_role||'')}</span>
+          <span style="font-size:12px;color:var(--muted)">${esc(n.category||'')}</span>
+        </div>
+      </div>
+      <button id="p-close" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--muted);line-height:1">×</button>
+    </div>
+    <button id="p-add" style="width:100%;height:36px;border-radius:8px;background:var(--accent-soft);border:1px solid var(--accent-m);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;font-family:var(--sans)">
+      + Add to pairings
+    </button>
+    <div class="sec-lbl">Top pairings</div>
+    <div id="p-pairings" style="margin-top:6px">${DB.enabled()?'<span class="spinner"></span>':'<span style="color:var(--muted);font-size:13px">Connect Supabase to load pairings.</span>'}</div>`;
+  overlay.style.display='flex';
+  $('#p-close').addEventListener('click',()=>overlay.style.display='none');
+  $('#p-add').addEventListener('click',()=>{
+    addIngredient(n.name,n.display_name,n.bar_role||'other');
+    overlay.style.display='none';showTab('pairings');
+  });
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.style.display='none';});
+  if(DB.enabled()){
+    try{
+      const res=normPairings(await DB.pair([n.name],'explore',[n.name],10));
+      const pp=$('#p-pairings');
+      pp.innerHTML=res.length?res.map(scoreRow).join(''):'<span style="color:var(--muted);font-size:13px">No pairings found.</span>';
+      $$('.result-item',pp).forEach(r=>r.addEventListener('click',()=>{
+        const pn=state.allNodes[r.dataset.name];
+        addIngredient(r.dataset.name,pn?pn.display_name:r.dataset.name,pn?pn.bar_role:'other');
+        overlay.style.display='none';showTab('pairings');
+      }));
+    }catch(e){$('#p-pairings').innerHTML='<span style="color:var(--muted);font-size:13px">Error loading pairings.</span>';}
+  }
+}
+
+/* ============================================================
+   STATUS HELPER
+   ============================================================ */
+function setStatus(html){$('#status-row').innerHTML=html;}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+async function init(){
+  $('#no-config-wrap').style.display=DB.enabled()?'none':'block';
+  renderIngList();renderPairings();renderAlternatives();
+  buildNodeList();renderNodeTable();
+  if(DB.enabled()){
+    try{
+      const rows=await DB.nodes();
+      /* Live data overwrites seed for matched names */
+      rows.forEach(r=>{state.allNodes[r.name]=r;});
+      buildNodeList();renderNodeTable();
+    }catch(e){console.warn('Could not load flavor_nodes:',e);}
+  }
+}
+init();
+</script>
+</body>
+</html>
