@@ -22,6 +22,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 .brand{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:.3px;line-height:1}
 .brand .dot{color:var(--accent)}
 .brand-sub{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.home-btn{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:500;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;
+  margin-bottom:5px;opacity:.65;transition:opacity .15s}
+.home-btn:hover{opacity:1}
+.home-btn svg{flex:0 0 auto}
 .theme-flick{width:50px;height:28px;border-radius:14px;border:1px solid var(--border);
   background:var(--surface-alt);cursor:pointer;position:relative;transition:background .28s,border-color .28s;padding:0}
 [data-theme="dark"] .theme-flick{background:var(--accent-m);border-color:var(--accent-m)}
@@ -182,6 +187,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
 
   <header class="topbar">
     <div>
+      <a class="home-btn" href="/" aria-label="Back to home">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Bar-Lab
+      </a>
       <div class="brand">The Lab<span class="dot">.</span></div>
       <div class="brand-sub">Flavour pairing</div>
     </div>
@@ -235,8 +244,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15
         <div style="flex:1;min-width:200px">
           <div class="ctrl-lbl" title="Only results at or above this score are shown. Default 90 = well-tested pairings only.">Confidence threshold</div>
           <div class="thresh-wrap">
-            <input class="thresh-slider" id="thresh-slider" type="range" min="0" max="100" value="90" />
-            <span class="thresh-val" id="thresh-val">90</span>
+            <input class="thresh-slider" id="thresh-slider" type="range" min="0" max="100" value="0" />
+            <span class="thresh-val" id="thresh-val">0</span>
           </div>
         </div>
       </div>
@@ -494,7 +503,7 @@ const DB = {
 const state = {
   ingredients: [],   // [{id,name,display_name,bar_role,locked}]
   mode:        "explore",
-  threshold:   90,
+  threshold:   0,
   pairings:    [],   // raw results from RPC
   alts:        {},   // {ingredient_id:[{name,display_name,score},...]}
   allNodes:    {},   // name → node (seed + live merged)
@@ -833,6 +842,18 @@ async function init(){
     }catch(e){console.warn('Could not load flavor_nodes:',e);}
   }
 }
+/* One-time cache flush: removes any cached pairing responses that were stored
+   with the old un-normalised 0-1 scores. Safe to run on every load — only
+   removes keys prefixed "lab:rpc:flavor_pair" and "lab:rpc:flavor_tags". */
+(function flushOldScoreCache(){
+  var v='2';var k='lab:cache-v';
+  if(localStorage.getItem(k)===v) return;
+  Object.keys(localStorage).forEach(function(key){
+    if(key.indexOf('lab:rpc:flavor_')===0) localStorage.removeItem(key);
+  });
+  localStorage.setItem(k,v);
+})();
+
 init();
 </script>
 </body>
